@@ -1,105 +1,138 @@
-// Usamos uma nova versão 'v12' para forçar qualquer novo dispositivo a carregar os dados padrão atualizados
-let marcasFrota = JSON.parse(localStorage.getItem('frota_marcas_v12')) || {
-    "Volkswagen": {
-        logo: "https://upload.wikimedia.org/wikipedia/commons/6/6d/Volkswagen_logo_2019.svg",
-        caminhoes: [
-            {
-                id: 101,
-                marca: "Volkswagen",
-                modelo: "VW Constellation 24.280",
-                placa: "VWX-1234",
-                foto: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=600&q=80",
-                status: "Alocado",
-                localAtual: "Centro de Distribuição - PE",
-                motorista: "José Carlos",
-                empresaAluguel: "Logística Nordeste",
-                valorAluguelMensal: 8500.00,
-                paradaProgramada: { ativa: true, data: "2026-12-10", motivo: "Revisão geral de freios" },
-                manutencoes: [
-                    {
-                        idManutencao: 1,
-                        pecaTrocada: "Pastilhas de Freio",
-                        servicoFeito: "Substituição completa",
-                        dataEntrada: "2026-02-01",
-                        dataSaida: "2026-02-02",
-                        custoPeca: 400.00,
-                        custoMaoObra: 150.00,
-                        mecanico: "João da Oficina",
-                        oficina: "Mecânica Pesada Sul",
-                        cidade: "Poços de Caldas",
-                        estado: "MG"
-                    }
-                ],
-                pecasDesgaste: ["Filtros", "Óleo", "Pneus", "Pastilhas"],
-                valoresDesgaste: [30, 40, 20, 10]
-            }
-        ]
-    },
-    "Ford": {
-        logo: "https://upload.wikimedia.org/wikipedia/commons/3/3e/Ford_logo_flat.svg",
-        caminhoes: [
-            {
-                id: 201,
-                marca: "Ford",
-                modelo: "Ford Cargo 2429",
-                placa: "FOR-5678",
-                foto: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=600&q=80",
-                status: "Em Manutenção",
-                localAtual: "Oficina Central - Agrovila",
-                motorista: "Roberto Dias",
-                empresaAluguel: "Construtora Agrovila",
-                valorAluguelMensal: 7200.00,
-                paradaProgramada: { ativa: false, data: "", motivo: "" },
-                manutencoes: [],
-                pecasDesgaste: ["Embreagem", "Freios", "Óleo", "Correias"],
-                valoresDesgaste: [70, 20, 5, 5]
-            }
-        ]
-    },
-    "Mercedes-Benz": {
-        logo: "https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Logo.svg",
-        caminhoes: [
-            {
-                id: 301,
-                marca: "Mercedes-Benz",
-                modelo: "Mercedes Actros 2651",
-                placa: "MBZ-9999",
-                foto: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80",
-                status: "Alocado",
-                localAtual: "Transporte de Cana - Usina",
-                motorista: "Antônio Carlos",
-                empresaAluguel: "Usina São José",
-                valorAluguelMensal: 12000.00,
-                paradaProgramada: { ativa: false, data: "", motivo: "" },
-                manutencoes: [],
-                pecasDesgaste: ["Pneus", "Óleo", "Freios", "Filtros"],
-                valoresDesgaste: [50, 30, 15, 5]
-            }
-        ]
-    }
-};
+// --- CONFIGURAÇÃO DO SUPABASE ---
+const SUPABASE_URL = 'COLE_SUA_URL_DO_SUPABASE_AQUI'; 
+const SUPABASE_ANON_KEY = 'COLE_SUA_CHAVE_ANON_AQUI'; 
 
-let funcionarios = JSON.parse(localStorage.getItem('frota_funcionarios_v4')) || [
-    {
-        id: 1,
-        nome: "José Carlos",
-        cpf: "123.456.789-00",
-        celular: "(81) 99888-7766",
-        admissao: "2024-01-15",
-        cnhCat: "D + EAR",
-        cnhValidade: "2027-08-15",
-        salario: 3500.00,
-        feriasInicio: "2026-07-01",
-        feriasFim: "2026-07-30",
-        afastamentoMotivo: "Nenhum",
-        afastamentoDias: 0,
-        atestados: "1 atestado"
-    }
-];
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let contasAcesso = JSON.parse(localStorage.getItem('frota_contas_v3')) || [
-    { id: 1, usuario: "Marcelo Barros", senha: "1234" }
-];
+let marcasFrota = {};
+let funcionarios = [];
+let contasAcesso = [];
+
+// Função principal para carregar dados da nuvem ao abrir o site
+async function carregarDadosDaNuvem() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('sistema_frota')
+            .select('*')
+            .eq('id', '1')
+            .single();
+
+        if (data && data.dados) {
+            marcasFrota = data.dados.marcasFrota;
+            funcionarios = data.dados.funcionarios;
+            contasAcesso = data.dados.contasAcesso;
+        } else {
+            // Se estiver vazio na nuvem, define os dados iniciais padrão
+            marcasFrota = {
+                "Volkswagen": {
+                    logo: "https://upload.wikimedia.org/wikipedia/commons/6/6d/Volkswagen_logo_2019.svg",
+                    caminhoes: [
+                        {
+                            id: 101,
+                            marca: "Volkswagen",
+                            modelo: "VW Constellation 24.280",
+                            placa: "VWX-1234",
+                            foto: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=600&q=80",
+                            status: "Alocado",
+                            localAtual: "Centro de Distribuição - PE",
+                            motorista: "José Carlos",
+                            empresaAluguel: "Logística Nordeste",
+                            valorAluguelMensal: 8500.00,
+                            paradaProgramada: { ativa: true, data: "2026-12-10", motivo: "Revisão geral de freios" },
+                            manutencoes: [],
+                            pecasDesgaste: ["Filtros", "Óleo", "Pneus", "Pastilhas"],
+                            valoresDesgaste: [30, 40, 20, 10]
+                        }
+                    ]
+                },
+                "Ford": {
+                    logo: "https://upload.wikimedia.org/wikipedia/commons/3/3e/Ford_logo_flat.svg",
+                    caminhoes: [
+                        {
+                            id: 201,
+                            marca: "Ford",
+                            modelo: "Ford Cargo 2429",
+                            placa: "FOR-5678",
+                            foto: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=600&q=80",
+                            status: "Em Manutenção",
+                            localAtual: "Oficina Central - Agrovila",
+                            motorista: "Roberto Dias",
+                            empresaAluguel: "Construtora Agrovila",
+                            valorAluguelMensal: 7200.00,
+                            paradaProgramada: { ativa: false, data: "", motivo: "" },
+                            manutencoes: [],
+                            pecasDesgaste: ["Embreagem", "Freios", "Óleo", "Correias"],
+                            valoresDesgaste: [70, 20, 5, 5]
+                        }
+                    ]
+                },
+                "Mercedes-Benz": {
+                    logo: "https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Logo.svg",
+                    caminhoes: [
+                        {
+                            id: 301,
+                            marca: "Mercedes-Benz",
+                            modelo: "Mercedes Actros 2651",
+                            placa: "MBZ-9999",
+                            foto: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80",
+                            status: "Alocado",
+                            localAtual: "Transporte de Cana - Usina",
+                            motorista: "Antônio Carlos",
+                            empresaAluguel: "Usina São José",
+                            valorAluguelMensal: 12000.00,
+                            paradaProgramada: { ativa: false, data: "", motivo: "" },
+                            manutencoes: [],
+                            pecasDesgaste: ["Pneus", "Óleo", "Freios", "Filtros"],
+                            valoresDesgaste: [50, 30, 15, 5]
+                        }
+                    ]
+                }
+            };
+            funcionarios = [
+                {
+                    id: 1,
+                    nome: "José Carlos",
+                    cpf: "123.456.789-00",
+                    celular: "(81) 99888-7766",
+                    admissao: "2024-01-15",
+                    cnhCat: "D + EAR",
+                    cnhValidade: "2027-08-15",
+                    salario: 3500.00,
+                    feriasInicio: "2026-07-01",
+                    feriasFim: "2026-07-30",
+                    afastamentoMotivo: "Nenhum",
+                    afastamentoDias: 0,
+                    atestados: "1 atestado"
+                }
+            ];
+            contasAcesso = [
+                { id: 1, usuario: "Marcelo Barros", senha: "1234" }
+            ];
+            await salvarDadosNaNuvem();
+        }
+    } catch (err) {
+        console.error("Erro ao conectar ao Supabase:", err);
+    }
+    
+    renderBrands();
+}
+
+// Função centralizada para salvar tudo na nuvem instantaneamente
+async function salvarDadosNaNuvem() {
+    const pacoteDados = {
+        marcasFrota: marcasFrota,
+        funcionarios: funcionarios,
+        contasAcesso: contasAcesso
+    };
+
+    const { error } = await supabaseClient
+        .from('sistema_frota')
+        .upsert([{ id: '1', dados: pacoteDados }]);
+
+    if (error) {
+        console.error("Erro ao salvar na nuvem:", error);
+    }
+}
 
 const brandsGrid = document.getElementById('brandsGrid');
 const loginModal = document.getElementById('loginModal');
@@ -319,7 +352,6 @@ function renderizarTodosCaminhoesAdmin() {
     }
 }
 
-// Gestão de Edição de Caminhão Completa
 function abrirEdicaoCaminhao(id) {
     let caminhao = null;
     let marcaAtual = null;
@@ -483,7 +515,7 @@ function abrirEdicaoCaminhao(id) {
     editTruckModal.classList.add('active');
     renderizarGraficoManutencao(caminhao);
 
-    document.getElementById('formGeralCaminhao').addEventListener('submit', (e) => {
+    document.getElementById('formGeralCaminhao').addEventListener('submit', async (e) => {
         e.preventDefault();
         const novaMarca = document.getElementById('editMarca').value;
         const novoModelo = document.getElementById('editModelo').value;
@@ -517,14 +549,14 @@ function abrirEdicaoCaminhao(id) {
             caminhao.empresaAluguel = novaEmpresa;
         }
 
-        localStorage.setItem('frota_marcas_v12', JSON.stringify(marcasFrota));
-        alert("Informações do veículo atualizadas com sucesso!");
+        await salvarDadosNaNuvem();
+        alert("Informações do veículo atualizadas e salvas na nuvem!");
         renderBrands();
         renderizarTodosCaminhoesAdmin();
         editTruckModal.classList.remove('active');
     });
 
-    document.getElementById('formAdicionarManutencao').addEventListener('submit', (e) => {
+    document.getElementById('formAdicionarManutencao').addEventListener('submit', async (e) => {
         e.preventDefault();
         const idManutencaoEditando = document.getElementById('editIdManutencao').value;
 
@@ -545,13 +577,13 @@ function abrirEdicaoCaminhao(id) {
         if (idManutencaoEditando) {
             const index = caminhao.manutencoes.findIndex(m => m.idManutencao === parseInt(idManutencaoEditando));
             if (index !== -1) caminhao.manutencoes[index] = dadosManutencao;
-            alert("Manutenção atualizada com sucesso!");
+            alert("Manutenção atualizada!");
         } else {
             caminhao.manutencoes.unshift(dadosManutencao);
-            alert("Manutenção registrada com sucesso!");
+            alert("Manutenção registrada!");
         }
 
-        localStorage.setItem('frota_marcas_v12', JSON.stringify(marcasFrota));
+        await salvarDadosNaNuvem();
         abrirEdicaoCaminhao(caminhao.id);
         renderizarResumoGeral();
     });
@@ -585,19 +617,20 @@ window.preencherEdicaoManutencao = function(idCaminhao, idManutencao) {
     document.getElementById('formAdicionarManutencao').scrollIntoView({ behavior: 'smooth' });
 };
 
-window.excluirManutencao = function(idCaminhao, idManutencao) {
+window.excluirManutencao = async function(idCaminhao, idManutencao) {
     if (!confirm("Deseja realmente excluir este registro de manutenção?")) return;
 
-    Object.keys(marcasFrota).forEach(m => {
+    for (let m of Object.keys(marcasFrota)) {
         const caminhao = marcasFrota[m].caminhoes.find(c => c.id === idCaminhao);
         if (caminhao) {
             caminhao.manutencoes = caminhao.manutencoes.filter(man => man.idManutencao !== idManutencao);
-            localStorage.setItem('frota_marcas_v12', JSON.stringify(marcasFrota));
-            alert("Manutenção excluída com sucesso!");
+            await salvarDadosNaNuvem();
+            alert("Manutenção excluída e salva na nuvem!");
             abrirEdicaoCaminhao(caminhao.id);
             renderizarResumoGeral();
+            break;
         }
-    });
+    }
 };
 
 function renderizarGraficoManutencao(caminhao) {
@@ -629,8 +662,7 @@ function renderizarGraficoManutencao(caminhao) {
     });
 }
 
-// Gestão de Contas
-formConta.addEventListener('submit', (e) => {
+formConta.addEventListener('submit', async (e) => {
     e.preventDefault();
     const idEditando = document.getElementById('contaId').value;
     const usuarioNovo = document.getElementById('contaUsuario').value.trim();
@@ -641,15 +673,15 @@ formConta.addEventListener('submit', (e) => {
         if (conta) {
             conta.usuario = usuarioNovo;
             conta.senha = senhaNova;
-            alert("Conta atualizada com sucesso!");
+            alert("Conta atualizada!");
         }
     } else {
         const novaConta = { id: Date.now(), usuario: usuarioNovo, senha: senhaNova };
         contasAcesso.push(novaConta);
-        alert("Novo login criado com sucesso!");
+        alert("Novo login criado!");
     }
 
-    localStorage.setItem('frota_contas_v3', JSON.stringify(contasAcesso));
+    await salvarDadosNaNuvem();
     formConta.reset();
     document.getElementById('contaId').value = "";
     document.getElementById('tituloFormConta').textContent = "🔑 Criar Novo Login de Acesso";
@@ -688,7 +720,7 @@ window.editarConta = function(id) {
     formConta.scrollIntoView({ behavior: 'smooth' });
 };
 
-window.excluirConta = function(id) {
+window.excluirConta = async function(id) {
     if (contasAcesso.length <= 1) {
         alert("Você não pode excluir a última conta restante do sistema!");
         return;
@@ -696,12 +728,11 @@ window.excluirConta = function(id) {
     if (!confirm("Deseja realmente excluir este login?")) return;
     
     contasAcesso = contasAcesso.filter(c => c.id !== id);
-    localStorage.setItem('frota_contas_v3', JSON.stringify(contasAcesso));
+    await salvarDadosNaNuvem();
     renderizarContas();
 };
 
-// Gestão de Funcionários
-formFuncionario.addEventListener('submit', (e) => {
+formFuncionario.addEventListener('submit', async (e) => {
     e.preventDefault();
     const idEditando = document.getElementById('funcId').value;
 
@@ -724,13 +755,13 @@ formFuncionario.addEventListener('submit', (e) => {
     if (idEditando) {
         const index = funcionarios.findIndex(f => f.id === parseInt(idEditando));
         if (index !== -1) funcionarios[index] = novoFunc;
-        alert("Funcionário atualizado com sucesso!");
+        alert("Funcionário atualizado!");
     } else {
         funcionarios.push(novoFunc);
-        alert("Funcionário cadastrado com sucesso!");
+        alert("Funcionário cadastrado!");
     }
 
-    localStorage.setItem('frota_funcionarios_v4', JSON.stringify(funcionarios));
+    await salvarDadosNaNuvem();
     formFuncionario.reset();
     document.getElementById('funcId').value = "";
     renderizarFuncionarios();
@@ -798,10 +829,10 @@ window.editarFuncionario = function(id) {
     formFuncionario.scrollIntoView({ behavior: 'smooth' });
 };
 
-window.excluirFuncionario = function(id) {
+window.excluirFuncionario = async function(id) {
     if (!confirm("Deseja realmente excluir este funcionário?")) return;
     funcionarios = funcionarios.filter(f => f.id !== id);
-    localStorage.setItem('frota_funcionarios_v4', JSON.stringify(funcionarios));
+    await salvarDadosNaNuvem();
     renderizarFuncionarios();
     renderizarResumoGeral();
 };
@@ -818,7 +849,7 @@ function carregarSelectParadaGeral() {
     });
 }
 
-formProgramarManutencaoAdmin.addEventListener('submit', (e) => {
+formProgramarManutencaoAdmin.addEventListener('submit', async (e) => {
     e.preventDefault();
     const idCaminhao = selectVeiculoParadaAdmin.value;
     const dataParada = document.getElementById('paradaDataAdmin').value;
@@ -835,7 +866,7 @@ formProgramarManutencaoAdmin.addEventListener('submit', (e) => {
     });
 
     if (encontrado) {
-        localStorage.setItem('frota_marcas_v12', JSON.stringify(marcasFrota));
+        await salvarDadosNaNuvem();
         alert("Parada programada com sucesso!");
         formProgramarManutencaoAdmin.reset();
         switchAdminTab('veiculosTab');
@@ -931,7 +962,7 @@ window.carregarDadosFinanceiros = function(idCaminhao) {
     renderizarGraficoFinanceiroGeral(caminhao);
 };
 
-document.getElementById('formSalvarFinanceiro').addEventListener('submit', (e) => {
+document.getElementById('formSalvarFinanceiro').addEventListener('submit', async (e) => {
     e.preventDefault();
     const idCaminhao = document.getElementById('selectVeiculoFinanceiro').value;
 
@@ -945,8 +976,8 @@ document.getElementById('formSalvarFinanceiro').addEventListener('submit', (e) =
         caminhao.empresaAluguel = document.getElementById('finEmpresa').value;
         caminhao.valorAluguelMensal = parseFloat(document.getElementById('finValorMensal').value) || 0;
 
-        localStorage.setItem('frota_marcas_v12', JSON.stringify(marcasFrota));
-        alert("Dados de aluguel atualizados!");
+        await salvarDadosNaNuvem();
+        alert("Dados de aluguel atualizados na nuvem!");
         renderizarGraficoFinanceiroGeral(caminhao);
         renderizarResumoGeral();
     }
@@ -991,7 +1022,7 @@ function renderizarGraficoFinanceiroGeral(caminhao) {
     });
 }
 
-formNovoVeiculo.addEventListener('submit', (e) => {
+formNovoVeiculo.addEventListener('submit', async (e) => {
     e.preventDefault();
     const marcaEscolhida = document.getElementById('novoMarcaSelect').value;
 
@@ -1015,8 +1046,8 @@ formNovoVeiculo.addEventListener('submit', (e) => {
     if (!marcasFrota[marcaEscolhida]) marcasFrota[marcaEscolhida] = { caminhoes: [] };
     marcasFrota[marcaEscolhida].caminhoes.push(novoCaminhao);
 
-    localStorage.setItem('frota_marcas_v12', JSON.stringify(marcasFrota));
-    alert("Veículo cadastrado com sucesso!");
+    await salvarDadosNaNuvem();
+    alert("Veículo cadastrado e salvo na nuvem com sucesso!");
     formNovoVeiculo.reset();
     renderBrands();
     renderizarTodosCaminhoesAdmin();
@@ -1039,4 +1070,5 @@ window.addEventListener('click', (e) => {
     if (e.target === brandTrucksModal) brandTrucksModal.classList.remove('active');
 });
 
-renderBrands();
+// Inicializa o carregamento dos dados direto do Supabase
+carregarDadosDaNuvem();
