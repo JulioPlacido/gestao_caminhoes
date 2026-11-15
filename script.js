@@ -1,6 +1,6 @@
 // --- CONFIGURAÇÃO DO SUPABASE ---
 const SUPABASE_URL = 'https://ujddxiebxdgmxkpngsd.supabase.co'; 
-const SUPABASE_ANON_KEY = 'cole_aqui_aquela_chave_sb_publishable_que_voce_copiou_antes';
+const SUPABASE_ANON_KEY = 'sb_publishable_OMIDDjEjebTvd-Vbb8yA_gmqGaQvCni'; 
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -117,7 +117,7 @@ async function carregarDadosDaNuvem() {
     renderBrands();
 }
 
-// Função centralizada para salvar tudo na nuvem instantaneamente
+// Função robusta e segura para salvar tudo na nuvem aguardando confirmação
 async function salvarDadosNaNuvem() {
     const pacoteDados = {
         marcasFrota: marcasFrota,
@@ -131,7 +131,10 @@ async function salvarDadosNaNuvem() {
 
     if (error) {
         console.error("Erro ao salvar na nuvem:", error);
+        alert("Erro ao salvar na nuvem. Verifique sua conexão.");
+        return false;
     }
+    return true;
 }
 
 const brandsGrid = document.getElementById('brandsGrid');
