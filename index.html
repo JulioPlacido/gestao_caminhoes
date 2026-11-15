@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão Geral de Frota e Funcionários</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <header>
+        <div class="container header-flex">
+            <div>
+                <h1>🚛 Gestão Geral de Frota</h1>
+                <p>Selecione uma marca abaixo para ver os veículos específicos ou acesse o Painel Admin</p>
+            </div>
+            <button class="btn-login-header" onclick="abrirModalLogin()">🔒 Login Admin Geral</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Tela Inicial com as Marcas -->
+        <section class="brands-grid" id="brandsGrid"></section>
+    </main>
+
+    <!-- Modal para Exibir Veículos da Marca Clicada -->
+    <div class="modal-overlay" id="brandTrucksModal">
+        <div class="modal-content large-modal">
+            <button class="close-btn" id="closeBrandModal">&times;</button>
+            <div id="brandModalHeader" class="dashboard-header"></div>
+            <div class="fleet-grid" id="brandTrucksGrid" style="margin-top: 1rem;"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Login (Admin Geral) -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-content login-box">
+            <button class="close-btn" id="closeLogin">&times;</button>
+            <h2>🔒 Painel Admin Geral</h2>
+            <p>Digite as credenciais para acessar o sistema:</p>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label>Usuário:</label>
+                    <input type="text" id="userInput" placeholder="Ex: Marcelo Barros" required>
+                </div>
+                <div class="input-group">
+                    <label>Senha:</label>
+                    <input type="password" id="passInput" placeholder="Senha" required>
+                </div>
+                <button type="submit" class="btn-primary">Entrar no Painel Geral</button>
+                <p id="loginError" class="error-msg"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Painel Administrativo Geral -->
+    <div class="modal-overlay" id="adminDashboardModal">
+        <div class="modal-content large-modal">
+            <button class="close-btn" id="closeAdmin">&times;</button>
+            
+            <div class="dashboard-header">
+                <h2>🌐 Painel de Controle Geral</h2>
+                <p>Visão executiva, veículos, financeiro, funcionários e contas de acesso.</p>
+            </div>
+
+            <!-- Abas do Painel Geral -->
+            <div class="admin-tabs">
+                <button class="tab-btn active" onclick="switchAdminTab('resumoTab')">📊 Resumo Geral</button>
+                <button class="tab-btn" onclick="switchAdminTab('veiculosTab')">🚛 Veículos</button>
+                <button class="tab-btn" onclick="switchAdminTab('novoVeiculoTab')">➕ Novo Veículo</button>
+                <button class="tab-btn" onclick="switchAdminTab('financeiroTab')">💰 Financeiro</button>
+                <button class="tab-btn" onclick="switchAdminTab('programarTab')">📅 Parada</button>
+                <button class="tab-btn" onclick="switchAdminTab('funcionariosTab')">👥 Funcionários</button>
+                <button class="tab-btn" onclick="switchAdminTab('contasTab')">🔑 Contas</button>
+            </div>
+
+            <!-- Aba 0: Dashboard de Resumo Geral -->
+            <div id="resumoTab" class="tab-content active">
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <h3>🚛 Total de Veículos</h3>
+                        <p id="kpiTotalVeiculos">0</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>💰 Receita Mensal Aluguel</h3>
+                        <p id="kpiReceitaTotal" style="color:#38bdf8;">R$ 0,00</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>🛠️ Despesa Manutenções</h3>
+                        <p id="kpiDespesaTotal" style="color:#ef4444;">R$ 0,00</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>📈 Lucro Líquido Frota</h3>
+                        <p id="kpiLucroTotal" style="color:#34d399;">R$ 0,00</p>
+                    </div>
+                </div>
+
+                <div class="kpi-grid" style="margin-top: 1rem;">
+                    <div class="kpi-card">
+                        <h3>👥 Total Funcionários</h3>
+                        <p id="kpiTotalFuncionarios">0</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>💵 Folha Salarial Mensal</h3>
+                        <p id="kpiFolhaSalarios" style="color:#fbbf24;">R$ 0,00</p>
+                    </div>
+                </div>
+
+                <div class="edit-section" style="margin-top: 1.5rem;">
+                    <h3 style="color:#38bdf8; margin-bottom: 0.5rem;">📊 Comparativo Geral da Empresa</h3>
+                    <div class="chart-container">
+                        <canvas id="graficoResumoGeral"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba 1: Todos os Veículos -->
+            <div id="veiculosTab" class="tab-content">
+                <div class="fleet-grid" id="adminFleetGrid"></div>
+            </div>
+
+            <!-- Aba 2: Novo Veículo -->
+            <div id="novoVeiculoTab" class="tab-content">
+                <form id="formNovoVeiculo">
+                    <div class="edit-section">
+                        <h3>📋 Informações do Novo Veículo</h3>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Marca:</label>
+                                <select id="novoMarcaSelect" required>
+                                    <option value="Volkswagen">Volkswagen</option>
+                                    <option value="Ford">Ford</option>
+                                    <option value="Mercedes-Benz">Mercedes-Benz</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Nome / Modelo do Caminhão:</label>
+                                <input type="text" id="novoModelo" placeholder="Ex: VW Constellation" required>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Placa:</label>
+                                <input type="text" id="novoPlaca" placeholder="Ex: ABC-1234" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Link da Foto (URL):</label>
+                                <input type="text" id="novoFoto" placeholder="Cole o link da foto do caminhão" required>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Status:</label>
+                                <select id="novoStatus">
+                                    <option value="Alocado">Alocado</option>
+                                    <option value="Em Manutenção">Em Manutenção</option>
+                                    <option value="Parada Programada">Parada Programada</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Local Atual / Alugado:</label>
+                                <input type="text" id="novoLocal" placeholder="Ex: Obra BR-101" required>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary" style="background:#34d399;">Salvar e Adicionar à Frota</button>
+                </form>
+            </div>
+
+            <!-- Aba 3: Financeiro -->
+            <div id="financeiroTab" class="tab-content">
+                <div class="edit-section">
+                    <h3>💰 Controle de Aluguel e Lucratividade Geral</h3>
+                    <div class="input-group">
+                        <label>Selecione o Veículo da Frota:</label>
+                        <select id="selectVeiculoFinanceiro" onchange="carregarDadosFinanceiros(this.value)">
+                            <option value="">-- Selecione um caminhão --</option>
+                        </select>
+                    </div>
+
+                    <div id="painelFinanceiroDetalhes" style="display: none; margin-top: 1.5rem;">
+                        <form id="formSalvarFinanceiro">
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label>Empresa Locatária:</label>
+                                    <input type="text" id="finEmpresa" placeholder="Ex: Usina São João" required>
+                                </div>
+                                <div class="input-group">
+                                    <label>Valor do Aluguel Mensal (R$):</label>
+                                    <input type="number" step="0.01" id="finValorMensal" placeholder="0.00" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary" style="background:#34d399;">Salvar Dados de Aluguel</button>
+                        </form>
+
+                        <div style="margin-top: 2rem;">
+                            <h3 style="color:#38bdf8; margin-bottom: 0.5rem;">📊 Balanço: Lucro vs Manutenção</h3>
+                            <div class="chart-container">
+                                <canvas id="graficoFinanceiroGeral"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba 4: Programar Manutenção -->
+            <div id="programarTab" class="tab-content">
+                <div class="edit-section">
+                    <h3>📅 Agendar Parada Programada para Manutenção</h3>
+                    <form id="formProgramarManutencaoAdmin">
+                        <div class="input-group">
+                            <label>Selecione o Veículo:</label>
+                            <select id="selectVeiculoParadaAdmin" required>
+                                <option value="">-- Selecione um caminhão --</option>
+                            </select>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Dia da Parada Programada:</label>
+                                <input type="date" id="paradaDataAdmin" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Motivo / O que deve ser feito:</label>
+                                <input type="text" id="paradaMotivoAdmin" placeholder="Ex: Revisão de freios" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary" style="background:#38bdf8; color:#0f172a;">Salvar Parada Programada</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Aba 5: Funcionários -->
+            <div id="funcionariosTab" class="tab-content">
+                <div class="edit-section">
+                    <h3>👥 Cadastro e Gestão de Funcionários</h3>
+                    <form id="formFuncionario">
+                        <input type="hidden" id="funcId" value="">
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Nome do Funcionário:</label>
+                                <input type="text" id="funcNome" placeholder="Ex: Carlos Silva" required>
+                            </div>
+                            <div class="input-group">
+                                <label>CPF:</label>
+                                <input type="text" id="funcCpf" placeholder="000.000.000-00" required>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Número de Celular:</label>
+                                <input type="text" id="funcCelular" placeholder="(00) 00000-0000" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Data de Admissão:</label>
+                                <input type="date" id="funcAdmissao" required>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Categoria da CNH:</label>
+                                <select id="funcCnhCat">
+                                    <option value="Não possui">Não possui</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D + EAR">D + EAR</option>
+                                    <option value="E + EAR">E + EAR</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Validade da CNH:</label>
+                                <input type="date" id="funcCnhValidade">
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Salário (R$):</label>
+                                <input type="number" step="0.01" id="funcSalario" placeholder="0.00" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Atestados Apresentados:</label>
+                                <input type="text" id="funcAtestados" placeholder="Ex: 2 atestados">
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Férias - Início:</label>
+                                <input type="date" id="funcFeriasInicio">
+                            </div>
+                            <div class="input-group">
+                                <label>Férias - Fim:</label>
+                                <input type="date" id="funcFeriasFim">
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Afastamento - Motivo:</label>
+                                <input type="text" id="funcAfastamentoMotivo" placeholder="Ex: Saúde">
+                            </div>
+                            <div class="input-group">
+                                <label>Afastamento - Dias:</label>
+                                <input type="number" id="funcAfastamentoDias" placeholder="Qtd de dias">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary" style="background:#34d399;">Salvar Funcionário</button>
+                    </form>
+                </div>
+                <div class="edit-section" style="margin-top: 1.5rem;">
+                    <h3>📋 Lista de Funcionários</h3>
+                    <div id="listaFuncionariosContainer"></div>
+                </div>
+            </div>
+
+            <!-- Aba 6: Contas -->
+            <div id="contasTab" class="tab-content">
+                <div class="edit-section">
+                    <h3 id="tituloFormConta">🔑 Criar Novo Login de Acesso</h3>
+                    <form id="formConta">
+                        <input type="hidden" id="contaId" value="">
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Nome do Usuário:</label>
+                                <input type="text" id="contaUsuario" placeholder="Ex: Marcelo Barros" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Senha:</label>
+                                <input type="text" id="contaSenha" placeholder="Digite a senha" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary" id="btnSalvarConta" style="background:#34d399;">Salvar Conta</button>
+                    </form>
+                </div>
+
+                <div class="edit-section" style="margin-top: 1.5rem;">
+                    <h3>📋 Logins de Acesso Cadastrados</h3>
+                    <div id="listaContasContainer"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Caminhão -->
+    <div class="modal-overlay" id="editTruckModal">
+        <div class="modal-content large-modal">
+            <button class="close-btn" id="closeEdit">&times;</button>
+            <div id="editModalBody"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Visualização Rápida -->
+    <div class="modal-overlay" id="viewTruckModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="close-btn" id="closeView">&times;</button>
+            <div id="viewModalBody"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
