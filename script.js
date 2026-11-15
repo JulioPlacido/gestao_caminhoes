@@ -17,7 +17,7 @@ async function carregarDadosDaNuvem() {
             .eq('id', '1')
             .single();
 
-        if (data && data.dados) {
+        if (data && data.dados && Object.keys(data.dados).length > 0) {
             marcasFrota = data.dados.marcasFrota;
             funcionarios = data.dados.funcionarios;
             contasAcesso = data.dados.contasAcesso;
@@ -117,7 +117,7 @@ async function carregarDadosDaNuvem() {
     renderBrands();
 }
 
-// Função robusta e segura para salvar tudo na nuvem aguardando confirmação
+// Função de salvamento atualizada com onConflict para o Supabase
 async function salvarDadosNaNuvem() {
     const pacoteDados = {
         marcasFrota: marcasFrota,
@@ -127,7 +127,10 @@ async function salvarDadosNaNuvem() {
 
     const { error } = await supabaseClient
         .from('sistema_frota')
-        .upsert([{ id: '1', dados: pacoteDados }]);
+        .upsert(
+            { id: 1, dados: pacoteDados },
+            { onConflict: 'id' }
+        );
 
     if (error) {
         console.error("Erro ao salvar na nuvem:", error);
