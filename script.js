@@ -1,4 +1,5 @@
-let marcasFrota = JSON.parse(localStorage.getItem('frota_marcas_v11')) || {
+// Usamos uma nova versão 'v12' para forçar qualquer novo dispositivo a carregar os dados padrão atualizados
+let marcasFrota = JSON.parse(localStorage.getItem('frota_marcas_v12')) || {
     "Volkswagen": {
         logo: "https://upload.wikimedia.org/wikipedia/commons/6/6d/Volkswagen_logo_2019.svg",
         caminhoes: [
@@ -7,6 +8,7 @@ let marcasFrota = JSON.parse(localStorage.getItem('frota_marcas_v11')) || {
                 marca: "Volkswagen",
                 modelo: "VW Constellation 24.280",
                 placa: "VWX-1234",
+                foto: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=600&q=80",
                 status: "Alocado",
                 localAtual: "Centro de Distribuição - PE",
                 motorista: "José Carlos",
@@ -41,6 +43,7 @@ let marcasFrota = JSON.parse(localStorage.getItem('frota_marcas_v11')) || {
                 marca: "Ford",
                 modelo: "Ford Cargo 2429",
                 placa: "FOR-5678",
+                foto: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=600&q=80",
                 status: "Em Manutenção",
                 localAtual: "Oficina Central - Agrovila",
                 motorista: "Roberto Dias",
@@ -61,6 +64,7 @@ let marcasFrota = JSON.parse(localStorage.getItem('frota_marcas_v11')) || {
                 marca: "Mercedes-Benz",
                 modelo: "Mercedes Actros 2651",
                 placa: "MBZ-9999",
+                foto: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80",
                 status: "Alocado",
                 localAtual: "Transporte de Cana - Usina",
                 motorista: "Antônio Carlos",
@@ -75,7 +79,7 @@ let marcasFrota = JSON.parse(localStorage.getItem('frota_marcas_v11')) || {
     }
 };
 
-let funcionarios = JSON.parse(localStorage.getItem('frota_funcionarios_v3')) || [
+let funcionarios = JSON.parse(localStorage.getItem('frota_funcionarios_v4')) || [
     {
         id: 1,
         nome: "José Carlos",
@@ -93,7 +97,7 @@ let funcionarios = JSON.parse(localStorage.getItem('frota_funcionarios_v3')) || 
     }
 ];
 
-let contasAcesso = JSON.parse(localStorage.getItem('frota_contas_v2')) || [
+let contasAcesso = JSON.parse(localStorage.getItem('frota_contas_v3')) || [
     { id: 1, usuario: "Marcelo Barros", senha: "1234" }
 ];
 
@@ -315,7 +319,7 @@ function renderizarTodosCaminhoesAdmin() {
     }
 }
 
-// Gestão de Edição de Caminhão (Com dados cadastrais e operacionais completos)
+// Gestão de Edição de Caminhão Completa
 function abrirEdicaoCaminhao(id) {
     let caminhao = null;
     let marcaAtual = null;
@@ -479,7 +483,6 @@ function abrirEdicaoCaminhao(id) {
     editTruckModal.classList.add('active');
     renderizarGraficoManutencao(caminhao);
 
-    // Salvar dados cadastrais e operacionais editados
     document.getElementById('formGeralCaminhao').addEventListener('submit', (e) => {
         e.preventDefault();
         const novaMarca = document.getElementById('editMarca').value;
@@ -491,7 +494,6 @@ function abrirEdicaoCaminhao(id) {
         const novoMotorista = document.getElementById('editMotorista').value;
         const novaEmpresa = document.getElementById('editEmpresa').value;
 
-        // Se a marca mudou, remove do array antigo e adiciona no novo
         if (novaMarca !== marcaAtual) {
             marcasFrota[marcaAtual].caminhoes = marcasFrota[marcaAtual].caminhoes.filter(c => c.id !== id);
             caminhao.marca = novaMarca;
@@ -515,14 +517,13 @@ function abrirEdicaoCaminhao(id) {
             caminhao.empresaAluguel = novaEmpresa;
         }
 
-        localStorage.setItem('frota_marcas_v11', JSON.stringify(marcasFrota));
+        localStorage.setItem('frota_marcas_v12', JSON.stringify(marcasFrota));
         alert("Informações do veículo atualizadas com sucesso!");
         renderBrands();
         renderizarTodosCaminhoesAdmin();
         editTruckModal.classList.remove('active');
     });
 
-    // Salvar ou atualizar manutenção
     document.getElementById('formAdicionarManutencao').addEventListener('submit', (e) => {
         e.preventDefault();
         const idManutencaoEditando = document.getElementById('editIdManutencao').value;
@@ -550,7 +551,7 @@ function abrirEdicaoCaminhao(id) {
             alert("Manutenção registrada com sucesso!");
         }
 
-        localStorage.setItem('frota_marcas_v11', JSON.stringify(marcasFrota));
+        localStorage.setItem('frota_marcas_v12', JSON.stringify(marcasFrota));
         abrirEdicaoCaminhao(caminhao.id);
         renderizarResumoGeral();
     });
@@ -591,7 +592,7 @@ window.excluirManutencao = function(idCaminhao, idManutencao) {
         const caminhao = marcasFrota[m].caminhoes.find(c => c.id === idCaminhao);
         if (caminhao) {
             caminhao.manutencoes = caminhao.manutencoes.filter(man => man.idManutencao !== idManutencao);
-            localStorage.setItem('frota_marcas_v11', JSON.stringify(marcasFrota));
+            localStorage.setItem('frota_marcas_v12', JSON.stringify(marcasFrota));
             alert("Manutenção excluída com sucesso!");
             abrirEdicaoCaminhao(caminhao.id);
             renderizarResumoGeral();
@@ -648,7 +649,7 @@ formConta.addEventListener('submit', (e) => {
         alert("Novo login criado com sucesso!");
     }
 
-    localStorage.setItem('frota_contas_v2', JSON.stringify(contasAcesso));
+    localStorage.setItem('frota_contas_v3', JSON.stringify(contasAcesso));
     formConta.reset();
     document.getElementById('contaId').value = "";
     document.getElementById('tituloFormConta').textContent = "🔑 Criar Novo Login de Acesso";
@@ -695,7 +696,7 @@ window.excluirConta = function(id) {
     if (!confirm("Deseja realmente excluir este login?")) return;
     
     contasAcesso = contasAcesso.filter(c => c.id !== id);
-    localStorage.setItem('frota_contas_v2', JSON.stringify(contasAcesso));
+    localStorage.setItem('frota_contas_v3', JSON.stringify(contasAcesso));
     renderizarContas();
 };
 
@@ -729,7 +730,7 @@ formFuncionario.addEventListener('submit', (e) => {
         alert("Funcionário cadastrado com sucesso!");
     }
 
-    localStorage.setItem('frota_funcionarios_v3', JSON.stringify(funcionarios));
+    localStorage.setItem('frota_funcionarios_v4', JSON.stringify(funcionarios));
     formFuncionario.reset();
     document.getElementById('funcId').value = "";
     renderizarFuncionarios();
@@ -800,7 +801,7 @@ window.editarFuncionario = function(id) {
 window.excluirFuncionario = function(id) {
     if (!confirm("Deseja realmente excluir este funcionário?")) return;
     funcionarios = funcionarios.filter(f => f.id !== id);
-    localStorage.setItem('frota_funcionarios_v3', JSON.stringify(funcionarios));
+    localStorage.setItem('frota_funcionarios_v4', JSON.stringify(funcionarios));
     renderizarFuncionarios();
     renderizarResumoGeral();
 };
@@ -834,7 +835,7 @@ formProgramarManutencaoAdmin.addEventListener('submit', (e) => {
     });
 
     if (encontrado) {
-        localStorage.setItem('frota_marcas_v11', JSON.stringify(marcasFrota));
+        localStorage.setItem('frota_marcas_v12', JSON.stringify(marcasFrota));
         alert("Parada programada com sucesso!");
         formProgramarManutencaoAdmin.reset();
         switchAdminTab('veiculosTab');
@@ -944,7 +945,7 @@ document.getElementById('formSalvarFinanceiro').addEventListener('submit', (e) =
         caminhao.empresaAluguel = document.getElementById('finEmpresa').value;
         caminhao.valorAluguelMensal = parseFloat(document.getElementById('finValorMensal').value) || 0;
 
-        localStorage.setItem('frota_marcas_v11', JSON.stringify(marcasFrota));
+        localStorage.setItem('frota_marcas_v12', JSON.stringify(marcasFrota));
         alert("Dados de aluguel atualizados!");
         renderizarGraficoFinanceiroGeral(caminhao);
         renderizarResumoGeral();
@@ -1014,7 +1015,7 @@ formNovoVeiculo.addEventListener('submit', (e) => {
     if (!marcasFrota[marcaEscolhida]) marcasFrota[marcaEscolhida] = { caminhoes: [] };
     marcasFrota[marcaEscolhida].caminhoes.push(novoCaminhao);
 
-    localStorage.setItem('frota_marcas_v11', JSON.stringify(marcasFrota));
+    localStorage.setItem('frota_marcas_v12', JSON.stringify(marcasFrota));
     alert("Veículo cadastrado com sucesso!");
     formNovoVeiculo.reset();
     renderBrands();
