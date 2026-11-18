@@ -6,8 +6,104 @@ let marcasFrota = {};
 let funcionarios = [];
 let contasAcesso = [];
 
-// Função principal para carregar dados da nuvem ao abrir o site
+// --- CARREGAMENTO E LOGIN BLINDADOS ---
 async function carregarDadosDaNuvem() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('sistema_frota')
+            .select('*')
+            .eq('id', 1)
+            .single();
+
+        if (data && data.dados) {
+            marcasFrota = data.dados.marcasFrota || {};
+            funcionarios = data.dados.funcionarios || [];
+            contasAcesso = data.dados.contasAcesso || [];
+        }
+    } catch (err) {
+        console.error("Erro ao carregar:", err);
+    }
+
+    if (!contasAcesso.some(c => c.usuario === "Marcelo Barros")) {
+        contasAcesso.push({ id: 1, usuario: "Marcelo Barros", senha: "123" });
+    }
+
+    if (!marcasFrota || Object.keys(marcasFrota).length === 0) {
+        marcasFrota = {
+            "Volkswagen": {
+                logo: "https://upload.wikimedia.org/wikipedia/commons/6/6d/Volkswagen_logo_2019.svg",
+                caminhoes: [
+                    {
+                        id: 101,
+                        marca: "Volkswagen",
+                        modelo: "VW Constellation 24.280",
+                        placa: "VWX-1234",
+                        foto: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=600&q=80",
+                        status: "Alocado",
+                        localAtual: "Centro de Distribuição - PE",
+                        motorista: "José Carlos",
+                        empresaAluguel: "Logística Nordeste",
+                        valorAluguelMensal: 8500.00,
+                        paradaProgramada: { ativa: false, data: "", motivo: "" },
+                        manutencoes: [],
+                        pecasDesgaste: ["Filtros", "Óleo", "Pneus", "Pastilhas"],
+                        valoresDesgaste: [30, 40, 20, 10]
+                    }
+                ]
+            }
+        };
+    }
+    
+    if (typeof renderBrands === 'function') {
+        renderBrands();
+    }
+}
+
+// Configuração garantida do Botão e Modal de Login
+document.addEventListener('DOMContentLoaded', () => {
+    carregarDadosDaNuvem();
+
+    const btnAbrirLogin = document.getElementById('btnAbrirLogin') || document.querySelector('.login-admin-btn');
+    const loginModal = document.getElementById('loginModal');
+    const fecharLogin = document.getElementById('fecharLogin') || document.querySelector('.close-modal');
+    const loginForm = document.getElementById('loginForm');
+    const userInput = document.getElementById('userInput');
+    const passInput = document.getElementById('passInput');
+    const loginError = document.getElementById('loginError');
+
+    if (btnAbrirLogin && loginModal) {
+        btnAbrirLogin.addEventListener('click', () => {
+            loginModal.classList.add('active');
+        });
+    }
+
+    if (fecharLogin && loginModal) {
+        fecharLogin.addEventListener('click', () => {
+            loginModal.classList.remove('active');
+        });
+    }
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userTyped = userInput.value.trim();
+            const passTyped = passInput.value.trim();
+
+            const contaEncontrada = contasAcesso.find(c => c.usuario.trim() === userTyped && c.senha.trim() === passTyped);
+
+            if ((userTyped === "Marcelo Barros" && passTyped === "123") || contaEncontrada) {
+                if (loginModal) loginModal.classList.remove('active');
+                if (typeof abrirDashboardGeral === 'function') {
+                    abrirDashboardGeral();
+                } else {
+                    alert("Login bem-sucedido!");
+                }
+            } else {
+                if (loginError) loginError.textContent = "Usuário ou senha incorretos.";
+            }
+        });
+    }
+});
     try {
         const { data, error } = await supabaseClient
             .from('sistema_frota')
