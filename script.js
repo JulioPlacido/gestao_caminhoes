@@ -60,7 +60,7 @@ async function carregarDadosDaNuvem() {
 }
 
 // Configuração garantida do Botão e Modal de Login
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     carregarDadosDaNuvem();
 
     const btnAbrirLogin = document.getElementById('btnAbrirLogin') || document.querySelector('.login-admin-btn');
