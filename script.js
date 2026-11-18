@@ -16,6 +16,56 @@ async function carregarDadosDaNuvem() {
             .single();
 
         if (data && data.dados && Object.keys(data.dados).length > 0) {
+            marcasFrota = data.dados.marcasFrota || {};
+            funcionarios = data.dados.funcionarios || [];
+            contasAcesso = data.dados.contasAcesso || [];
+        }
+    } catch (err) {
+        console.error("Erro ao carregar da nuvem:", err);
+    }
+
+    // SEGURANÇA: Garante que a conta do Marcelo Barros sempre exista, mesmo se a nuvem falhar
+    if (!contasAcesso.some(c => c.usuario === "Marcelo Barros")) {
+        contasAcesso.push({ id: 1, usuario: "Marcelo Barros", senha: "123" });
+    }
+
+    // Se as marcas estiverem vazias, define o padrão inicial para o site não abrir em branco
+    if (!marcasFrota || Object.keys(marcasFrota).length === 0) {
+        marcasFrota = {
+            "Volkswagen": {
+                logo: "https://upload.wikimedia.org/wikipedia/commons/6/6d/Volkswagen_logo_2019.svg",
+                caminhoes: [
+                    {
+                        id: 101,
+                        marca: "Volkswagen",
+                        modelo: "VW Constellation 24.280",
+                        placa: "VWX-1234",
+                        foto: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=600&q=80",
+                        status: "Alocado",
+                        localAtual: "Centro de Distribuição - PE",
+                        motorista: "José Carlos",
+                        empresaAluguel: "Logística Nordeste",
+                        valorAluguelMensal: 8500.00,
+                        paradaProgramada: { ativa: false, data: "", motivo: "" },
+                        manutencoes: [],
+                        pecasDesgaste: ["Filtros", "Óleo", "Pneus", "Pastilhas"],
+                        valoresDesgaste: [30, 40, 20, 10]
+                    }
+                ]
+            }
+        };
+    }
+    
+    renderBrands();
+}
+    try {
+        const { data, error } = await supabaseClient
+            .from('sistema_frota')
+            .select('*')
+            .eq('id', '1')
+            .single();
+
+        if (data && data.dados && Object.keys(data.dados).length > 0) {
             marcasFrota = data.dados.marcasFrota;
             funcionarios = data.dados.funcionarios;
             contasAcesso = data.dados.contasAcesso;
